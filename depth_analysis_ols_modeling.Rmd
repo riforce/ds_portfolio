@@ -1,0 +1,93 @@
+---
+title: "Modeling Depth with Ordinary Least Squares"
+output: html_notebook
+---
+
+The aim of this analysis is to predict Depth using local and coda magnitudes. Additionally, because we seek the simplest model with the best predictive power, we would like to determine the correlation between Mc1 and Mc2. If these two quantities are highly collinear, we'd like to find which serves as a better predictor of depth.
+
+
+First I load the test and train data sets and fit an ordinary least squares (OLS) model using ML and Mc2. The model coefficients are reported. I compare the root mean squared error (RMSE) from this model with that of a model using ML and Mc1. This serves to determine the relative predictive power of the quantities Mc1 and Mc2. Additionally, I compare the RMSE for a model which specifies the relationship between depth, ML, and the preferred coda magnitude to be depth = (+1)ML + (-1)Mc.
+
+
+```{r}
+#loading libraries and reading in data
+
+library(readr)
+library(Metrics)
+library(ggplot2)
+
+input.train.file = "C:/Users/riley/Seismo_Direc/cleaned_training_df.csv"
+input.test.file = "C:/Users/riley/Seismo_Direc/cleaned_testing_df.csv"
+  
+train <- read_csv(input.train.file)
+test <- read_csv(input.test.file)
+```
+
+```{r}
+#investigating collinearity between Mc1 and Mc2
+print(cor(train$Mc1, train$Mc2))
+```
+The correlation coefficient between Mc1 and Mc2 is 0.986. This indicates that these features are highly collinear, and are thus redundant as predictors. Further analysis explores which coda magnitude performs better in an OLS model
+
+Model Fitting
+
+```{r}
+ #fit an OLS model for ML and Mc2
+  model_mlmc2 <- lm(Dep ~ ML + Mc2, data = train)
+
+  #evaluate OLS for ML and Mc2
+  pred_mlmc2 <- predict(model_mlmc2, newdata = test)
+  rmse_mlmc2 <- rmse(test$Dep, pred_mlmc2)
+  print("RMSE for Dep ~ ML + Mc2:")
+  print(rmse_mlmc2)
+
+  print("Coefficients for Dep ~ ML + Mc2:")
+  print(model_mlmc2$coefficients)
+```
+The RMSE for this model is 3.825.
+The coefficients for ML and Mc2 are 3.766 and -4.574, respectively, with an intercept (or bias) of 9.717. We can interpret this to mean that for every one-unit (km, in our case) increase in depth, there is a corresponding increase in ML and decrease in Mc2. 
+
+```{r}
+#fit an ols for ML and Mc1
+  model_mlmc1 <- lm(Dep ~ ML + Mc1, data = train)
+  
+  #get RMSE
+  pred_mlmc1 <- predict(model_mlmc1, newdata = test)
+  rmse_mlmc1 <- rmse(test$Dep, pred_mlmc1)
+  print("RMSE for Dep ~ ML + Mc1:")
+  print(rmse_mlmc1)
+
+  print("Coefficients for Dep ~ ML + Mc1:")
+  print(model_mlmc1$coefficients)
+```
+The RMSE for this model is 3.847, slightly higher than for the previous model using Mc2. The coefficients for ML and Mc1 are 3.198 and -4.310, respectively, with an intercept (or bias) of 10.487. We can interpret this to mean that for every one-unit increase in depth, there is a corresponding increase in ML and decrease in Mc1. 
+
+```{r}
+#fit an ordinary least squares for ML and Mc2 where we specify coefficients of +1 and -1 respectively.
+
+  bias <- mean(train$Dep - (train$ML - train$Mc2))
+  print("Bias for Dep ~ (1)ML + (-1)Mc2:")
+  print(bias)
+
+  y_test <- (test$ML - test$Mc2) + bias
+
+  print("RMSE for Dep ~ (1)ML + (-1)Mc2:")
+  print(rmse(test$Dep, y_test))
+  
+```
+The RMSE for this model is 3.774, slightly lower than for the previous models. Additionally, the bias is 8.890 when the coefficients for ML and Mc2 are 1 and -1, respectively. 
+
+This indicates that while the model choice of ML − Mc has depth increasing as the ML and Mc scales converge, optimizing each feature’s coefficient gives us better predictive performance. However, note that the bulk of the predictive performance can be attributed to the bias term.
+
+```{r}
+#We can plot the training residuals and observe the correlation between residuals and depth.
+ plot((train$ML - train$Mc2), train$Dep)
+```
+  
+```{r}
+#Save the test residuals 
+test$resids <- test$Dep - y_test
+
+write.csv(test$resids,file="C:/Users/riley/ds_portfolio/ml_min_mc_resids.csv", row.names=TRUE)
+```
+

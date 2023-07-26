@@ -1753,16 +1753,251 @@ Splitting</h1>
 
 
 <!-- rnb-text-begin -->
+<p>The dataset used in the following analysis comes from a network of
+seismometers in California and includes physical features of seismic
+events derived from their wave-forms. The dataset consists of events
+from 11 regions. The initial features for each event are</p>
+<ol style="list-style-type: decimal">
+<li>Date</li>
+<li>Time</li>
+<li>Event ID; Evid</li>
+<li>Region or group cluster label; GC</li>
+<li>Event depth (km); Dep</li>
+<li>Coda magnitude; Mc1</li>
+<li>Lower frequency coda magnitude; Mc2</li>
+<li>Local magnitude; ML</li>
+<li>P-wave moment magnitude; Mwp</li>
+<li>S-wave moment magnitude; Mws</li>
+<li>P-wave corner frequency; fcp</li>
+<li>S-wave corner frequency; fcs</li>
+</ol>
+<p>Aside: At this time, I am not at liberty to share the dataset.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0hlbGxvLCB3b3JsZC5cbmBgYCJ9 -->
-<pre class="r"><code>#Hello, world.</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3NldCB1cCBmaWxlIHBhdGhzIGFuZCBsb2FkIG5lY2Vzc2FyeSBsaWJyYXJpZXNcbmxpYnJhcnkocmVhZHIpXG5cbm91dHB1dC50cmFpbi5maWxlIDwtIFwiQzovVXNlcnMvcmlsZXkvU2Vpc21vX0RpcmVjL2NsZWFuZWRfdHJhaW5pbmdfZGYuY3N2XCJcbm91dHB1dC50ZXN0LmZpbGUgPC0gXCJDOi9Vc2Vycy9yaWxleS9TZWlzbW9fRGlyZWMvY2xlYW5lZF90ZXN0aW5nX2RmLmNzdlwiXG5pbnB1dC5maWxlIDwtIFwiQzovVXNlcnMvcmlsZXkvU2Vpc21vX0RpcmVjL2tvcGVyZGF0LmRhdFwiXG5cbiNyZWFkIGluIGRhdGFcbmRhdGEgPC0gcmVhZC50YWJsZShmaWxlPWlucHV0LmZpbGUsIGhlYWRlcj1UUlVFLCBzZXA9XCJcIilcbnN1bW1hcnkoZGF0YSlcbmBgYCJ9 -->
+<pre class="r"><code>#set up file paths and load necessary libraries
+library(readr)
+
+output.train.file &lt;- &quot;C:/Users/riley/Seismo_Direc/cleaned_training_df.csv&quot;
+output.test.file &lt;- &quot;C:/Users/riley/Seismo_Direc/cleaned_testing_df.csv&quot;
+input.file &lt;- &quot;C:/Users/riley/Seismo_Direc/koperdat.dat&quot;
+
+#read in data
+data &lt;- read.table(file=input.file, header=TRUE, sep=&quot;&quot;)
+summary(data)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICBEYXRlICAgICAgICAgICAgICAgVGltZSAgICAgICAgICAgICAgICBFdmlkICAgICAgICAgICAgICAgR0MgICAgICAgICAgICAgICAgIERlcCAgICAgICAgICAgICAgTWMxICAgICAgICBcbiBMZW5ndGg6NzgyOSAgICAgICAgTGVuZ3RoOjc4MjkgICAgICAgIE1pbi4gICA6IDkxNzIzMDUgICBMZW5ndGg6NzgyOSAgICAgICAgTWluLiAgIDogMS4wMDAgICBNaW4uICAgOi05Ljk5MCAgXG4gQ2xhc3MgOmNoYXJhY3RlciAgIENsYXNzIDpjaGFyYWN0ZXIgICAxc3QgUXUuOjExMDg1NzQ2ICAgQ2xhc3MgOmNoYXJhY3RlciAgIDFzdCBRdS46IDYuMTcwICAgMXN0IFF1LjogMS43OTAgIFxuIE1vZGUgIDpjaGFyYWN0ZXIgICBNb2RlICA6Y2hhcmFjdGVyICAgTWVkaWFuIDoxNDY4MjUwOCAgIE1vZGUgIDpjaGFyYWN0ZXIgICBNZWRpYW4gOiA4LjY5MCAgIE1lZGlhbiA6IDIuMTEwICBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1lYW4gICA6MjE4NDE2NTIgICAgICAgICAgICAgICAgICAgICAgTWVhbiAgIDogOC45MjcgICBNZWFuICAgOiAxLjc2OCAgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAzcmQgUXUuOjM3NTE5ODcyICAgICAgICAgICAgICAgICAgICAgIDNyZCBRdS46MTEuMjMwICAgM3JkIFF1LjogMi41OTAgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTWF4LiAgIDozOTIzNDE5MiAgICAgICAgICAgICAgICAgICAgICBNYXguICAgOjI4LjA4MCAgIE1heC4gICA6IDUuMzIwICBcbiAgICAgIE1jMiAgICAgICAgICAgICAgIE1MICAgICAgICAgICAgICBNd3AgICAgICAgICAgICAgZmNwICAgICAgICAgICAgIE13cyAgICAgICAgICAgICAgZmNzICAgICAgICBcbiBNaW4uICAgOi05Ljk5MCAgIE1pbi4gICA6LTkuOTkwICAgTWluLiAgIDotOS45OSAgIE1pbi4gICA6LTkuOTkgICBNaW4uICAgOi05Ljk5MCAgIE1pbi4gICA6LTkuOTkwICBcbiAxc3QgUXUuOiAxLjc4MCAgIDFzdCBRdS46IDIuMTMwICAgMXN0IFF1LjogMi4zNiAgIDFzdCBRdS46IDQuMDkgICAxc3QgUXUuOiAyLjMzMCAgIDFzdCBRdS46IDMuMDMwICBcbiBNZWRpYW4gOiAyLjEwMCAgIE1lZGlhbiA6IDIuNDMwICAgTWVkaWFuIDogMi42MiAgIE1lZGlhbiA6IDguMDggICBNZWRpYW4gOiAyLjU3MCAgIE1lZGlhbiA6IDQuNzcwICBcbiBNZWFuICAgOiAxLjY5NSAgIE1lYW4gICA6IDIuMDE4ICAgTWVhbiAgIDogMS40NCAgIE1lYW4gICA6MTEuOTYgICBNZWFuICAgOiAyLjI1MiAgIE1lYW4gICA6IDUuOTA5ICBcbiAzcmQgUXUuOiAyLjY0MCAgIDNyZCBRdS46IDMuMDMwICAgM3JkIFF1LjogMy4wNSAgIDNyZCBRdS46MTYuNjcgICAzcmQgUXUuOiAzLjAxMCAgIDNyZCBRdS46IDcuOTAwICBcbiBNYXguICAgOiA1LjUwMCAgIE1heC4gICA6IDkuNjQwICAgTWF4LiAgIDogOC41MyAgIE1heC4gICA6OTkuNTYgICBNYXguICAgOiA3LjUwMCAgIE1heC4gICA6OTguNzMwICBcbiJ9 -->
+<pre><code>     Date               Time                Evid               GC                 Dep              Mc1        
+ Length:7829        Length:7829        Min.   : 9172305   Length:7829        Min.   : 1.000   Min.   :-9.990  
+ Class :character   Class :character   1st Qu.:11085746   Class :character   1st Qu.: 6.170   1st Qu.: 1.790  
+ Mode  :character   Mode  :character   Median :14682508   Mode  :character   Median : 8.690   Median : 2.110  
+                                       Mean   :21841652                      Mean   : 8.927   Mean   : 1.768  
+                                       3rd Qu.:37519872                      3rd Qu.:11.230   3rd Qu.: 2.590  
+                                       Max.   :39234192                      Max.   :28.080   Max.   : 5.320  
+      Mc2               ML              Mwp             fcp             Mws              fcs        
+ Min.   :-9.990   Min.   :-9.990   Min.   :-9.99   Min.   :-9.99   Min.   :-9.990   Min.   :-9.990  
+ 1st Qu.: 1.780   1st Qu.: 2.130   1st Qu.: 2.36   1st Qu.: 4.09   1st Qu.: 2.330   1st Qu.: 3.030  
+ Median : 2.100   Median : 2.430   Median : 2.62   Median : 8.08   Median : 2.570   Median : 4.770  
+ Mean   : 1.695   Mean   : 2.018   Mean   : 1.44   Mean   :11.96   Mean   : 2.252   Mean   : 5.909  
+ 3rd Qu.: 2.640   3rd Qu.: 3.030   3rd Qu.: 3.05   3rd Qu.:16.67   3rd Qu.: 3.010   3rd Qu.: 7.900  
+ Max.   : 5.500   Max.   : 9.640   Max.   : 8.53   Max.   :99.56   Max.   : 7.500   Max.   :98.730  </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Data Cleaning</p>
+<p>In this dataset, NaNs are represented by values of -9.99 (except for
+values of Dep). These observations will be dropped. Additionally, we
+will enforce magnitude limits such that the absolute values of the
+differences between the local and coda or moment magnitudes are no
+larger than 1. I will also generate a new statistic by averaging fcs and
+fcp, in case it is useful for the analysis. Finally, I will one-hot
+encode the regional labels GC.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2Ryb3BwaW5nIE5hTnMgYW5kIGVuZm9yY2luZyBtYWduaXR1ZGUgbGltaXRzXG5kYXRhIDwtIHN1YnNldChkYXRhLFxuICAgICAgICAgICAgICAgYWJzKGRhdGEkTUwgLSBkYXRhJE1jMSkgPD0gMSAmIGFicyhkYXRhJE1MIC0gZGF0YSRNYzIpIDw9IDEgJlxuICAgICAgICAgICAgICAgICBhYnMoZGF0YSRNTCAtIGRhdGEkTXdzKSA8PSAxICYgYWJzKGRhdGEkTUwgLSBNd3ApIDw9IDEgJlxuICAgICAgICAgICAgICAgICBkYXRhJE1MID4gLTkuOTkgJiBkYXRhJE1jMSA+IC05Ljk5ICYgZGF0YSRNYzIgPiAtOS45OSAmIGRhdGEkTXdwID4gLTkuOTkgJlxuICAgICAgICAgICAgICAgICBkYXRhJGZjcCA+IC05Ljk5ICYgZGF0YSRNd3MgPiAtOS45OSAmIGRhdGEkZmNzID4tOS45OSkgXG5cbiNjcmVhdGluZyBhdmVyYWdlZCBmY3MvZmNwIHN0YXRpc3RpY1xuZGF0YSRmYyA8LSAoZGF0YSRmY3MgKyBkYXRhJGZjcCkvMlxuXG4jZW5jb2RpbmcgR0NcbmRhdGEkR0MgPC0gYXMuZmFjdG9yKGRhdGEkR0MpXG5gYGAifQ== -->
+<pre class="r"><code>#dropping NaNs and enforcing magnitude limits
+data &lt;- subset(data,
+               abs(data$ML - data$Mc1) &lt;= 1 &amp; abs(data$ML - data$Mc2) &lt;= 1 &amp;
+                 abs(data$ML - data$Mws) &lt;= 1 &amp; abs(data$ML - Mwp) &lt;= 1 &amp;
+                 data$ML &gt; -9.99 &amp; data$Mc1 &gt; -9.99 &amp; data$Mc2 &gt; -9.99 &amp; data$Mwp &gt; -9.99 &amp;
+                 data$fcp &gt; -9.99 &amp; data$Mws &gt; -9.99 &amp; data$fcs &gt;-9.99) 
+
+#creating averaged fcs/fcp statistic
+data$fc &lt;- (data$fcs + data$fcp)/2
+
+#encoding GC
+data$GC &lt;- as.factor(data$GC)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Spitting Dataset Into Testing and Training Subsets</p>
+<p>Here I use a 70/30 training/testing set. Additionally, since the
+sizes of each of the group clusters are unbalanced, I will use
+downsampling without replacement to balance the training set.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3NldCBhIHJhbmRvbSBzZWVkIGFuZCBlc3RhYmxpc2ggdHJhaW5pbmcgcGVyY2VudFxuc2V0LnNlZWQoMTcpXG5wZXJjZW50LnRyYWluIDwtIDAuN1xuXG4jc29ydCBkYXRhIHNvIHRoYXQgYWxsIGNsdXN0ZXJzIGFyZSBncm91cGVkIHRvZ2V0aGVyLlxuZGF0YSA8LSBkYXRhW29yZGVyKGRhdGEkR0MpLCBdXG5cbiNhZGQgYW4gaW5kZXggdG8gaGVscCB3aXRoIGRvd25zYW1wbGluZ1xuZGF0YSRpbmRleCA8LSAxOm5yb3coZGF0YSlcblxuI2xpc3QgYWxsIGdyb3VwcyBcbmdyb3VwLm5hbWVzIDwtIHVuaXF1ZShkYXRhJEdDKVxucHJpbnQoZ3JvdXAubmFtZXMpXG5gYGAifQ== -->
+<pre class="r"><code>#set a random seed and establish training percent
+set.seed(17)
+percent.train &lt;- 0.7
+
+#sort data so that all clusters are grouped together.
+data &lt;- data[order(data$GC), ]
+
+#add an index to help with downsampling
+data$index &lt;- 1:nrow(data)
+
+#list all groups 
+group.names &lt;- unique(data$GC)
+print(group.names)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSAxOCAyOCAzOCA0OCA1OCA2OCA3OCA4OCBhOCBiOCBjOFxuTGV2ZWxzOiAxOCAyOCAzOCA0OCA1OCA2OCA3OCA4OCBhOCBiOCBjOFxuIn0= -->
+<pre><code> [1] 18 28 38 48 58 68 78 88 a8 b8 c8
+Levels: 18 28 38 48 58 68 78 88 a8 b8 c8</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3N1YnNldCBncm91cHMgYW5kIHB1dCB0aGVtIGluIGFuIGl0ZXJhYmxlIGxpc3Rcbmdyb3VwMTggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiMThcIilcbmdyb3VwMjggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiMjhcIilcbmdyb3VwMzggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiMzhcIilcbmdyb3VwNDggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiNDhcIilcbmdyb3VwNTggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiNThcIilcbmdyb3VwNjggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiNjhcIilcbmdyb3VwNzggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiNzhcIilcbmdyb3VwODggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiODhcIilcbmdyb3VwYTggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiYThcIilcbmdyb3VwYjggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiYjhcIilcbmdyb3VwYzggPC0gc3Vic2V0KGRhdGEsIEdDID09IFwiYzhcIilcblxuZ3JvdXBzIDwtIGxpc3QoZ3JvdXAxOCwgZ3JvdXAyOCwgZ3JvdXAzOCwgZ3JvdXA0OCwgZ3JvdXA1OCwgZ3JvdXA2OCwgZ3JvdXA3OCwgZ3JvdXA4OCwgZ3JvdXBhOCwgZ3JvdXBiOCwgZ3JvdXBjOClcblxuYGBgIn0= -->
+<pre class="r"><code>#subset groups and put them in an iterable list
+group18 &lt;- subset(data, GC == &quot;18&quot;)
+group28 &lt;- subset(data, GC == &quot;28&quot;)
+group38 &lt;- subset(data, GC == &quot;38&quot;)
+group48 &lt;- subset(data, GC == &quot;48&quot;)
+group58 &lt;- subset(data, GC == &quot;58&quot;)
+group68 &lt;- subset(data, GC == &quot;68&quot;)
+group78 &lt;- subset(data, GC == &quot;78&quot;)
+group88 &lt;- subset(data, GC == &quot;88&quot;)
+groupa8 &lt;- subset(data, GC == &quot;a8&quot;)
+groupb8 &lt;- subset(data, GC == &quot;b8&quot;)
+groupc8 &lt;- subset(data, GC == &quot;c8&quot;)
+
+groups &lt;- list(group18, group28, group38, group48, group58, group68, group78, group88, groupa8, groupb8, groupc8)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Downsampling</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2xvb3AgdGhyb3VnaCB1bmlxdWUgZ3JvdXBzIGFuZCBmaW5kIHNtYWxsZXN0IGdyb3VwXG5taW5zaXplIDwtIDEwMDAwXG5cbmZvcihnIGluIGdyb3Vwcyl7XG4gIGlmKG5yb3coZykgPD0gbWluc2l6ZSl7bWluc2l6ZSA8LSBucm93KGcpfVxufVxuXG4jc2V0IG91ciBzdWJncm91cCBzaXplXG50cmFpbnNpemUgPC0gZmxvb3IobWluc2l6ZSpwZXJjZW50LnRyYWluKVxuXG4jY3JlYXRlIHdheXMgdG8gc3RvcmUgZG93bnNhbXBsZWQgZ3JvdXBzIGFuZCByZXRhaW4gdW51c2VkIGRhdGEgZm9yIHRoZSB0ZXN0aW5nIHNldFxudHJhaW5pbmcuZGYgPC0gZGF0YS5mcmFtZShtYXRyaXgobmNvbCA9IG5jb2woZGF0YSksIG5yb3cgPSAwKSlcbmNvbG5hbWVzKHRyYWluaW5nLmRmKSA8LSBuYW1lcyhkYXRhKVxuXG50ZXN0aW5nLmRmIDwtIGRhdGEuZnJhbWUobWF0cml4KG5jb2wgPSBuY29sKGRhdGEpLCBucm93ID0gMCkpXG5jb2xuYW1lcyh0ZXN0aW5nLmRmKSA8LSBuYW1lcyhkYXRhKVxuXG4jc2FtcGxpbmdcbmZvcihnIGluIGdyb3Vwcyl7XG4gIGdyb3VwLm5hbWUgPC0gZyRHQ1sxXVxuICBcbiAgI2dldCB2ZWN0b3Igb2YgaW5kaWNlcyBmb3IgZWFjaCB1bmlxdWUgZ3JvdXBcbiAgc3RhcnQuZy5pIDwtIGckaW5kZXhbMV1cbiAgc2VsZWN0aW9uLnZlY3RvciA8LSBzdGFydC5nLmk6KHN0YXJ0LmcuaStucm93KGcpLTEpXG4gIFxuICAjc2FtcGxlIGZyb20gZ3JvdXAncyBpbmRpY2VzXG4gIHRyYWluLnNhbXBsZS5pbmRpY2VzIDwtIHNhbXBsZShzZWxlY3Rpb24udmVjdG9yLCBzaXplPXRyYWluc2l6ZSwgcmVwbGFjZT1GKVxuICB0ZXN0LnNhbXBsZS5pbmRpY2VzIDwtIHNldGRpZmYoc2VsZWN0aW9uLnZlY3RvciwgdHJhaW4uc2FtcGxlLmluZGljZXMpXG4gIFxuICB0cmFpbi5zYW1wbGUgPC0gc3Vic2V0KGcsIGckaW5kZXggJWluJSB0cmFpbi5zYW1wbGUuaW5kaWNlcylcbiAgdGVzdC5zYW1wbGUgPC0gc3Vic2V0KGcsIGckaW5kZXggJWluJSB0ZXN0LnNhbXBsZS5pbmRpY2VzKVxuICBcbiAgI2FwcGVuZCB0byBhcHByb3ByaWF0ZSBkYXRhZnJhbWVzXG4gIHRyYWluaW5nLmRmIDwtIHJiaW5kKHRyYWluaW5nLmRmLCB0cmFpbi5zYW1wbGUpXG4gIHRlc3RpbmcuZGYgPC0gcmJpbmQodGVzdGluZy5kZiwgdGVzdC5zYW1wbGUpXG59XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXG5gYGAifQ== -->
+<pre class="r"><code>#loop through unique groups and find smallest group
+minsize &lt;- 10000
+
+for(g in groups){
+  if(nrow(g) &lt;= minsize){minsize &lt;- nrow(g)}
+}
+
+#set our subgroup size
+trainsize &lt;- floor(minsize*percent.train)
+
+#create ways to store downsampled groups and retain unused data for the testing set
+training.df &lt;- data.frame(matrix(ncol = ncol(data), nrow = 0))
+colnames(training.df) &lt;- names(data)
+
+testing.df &lt;- data.frame(matrix(ncol = ncol(data), nrow = 0))
+colnames(testing.df) &lt;- names(data)
+
+#sampling
+for(g in groups){
+  group.name &lt;- g$GC[1]
+  
+  #get vector of indices for each unique group
+  start.g.i &lt;- g$index[1]
+  selection.vector &lt;- start.g.i:(start.g.i+nrow(g)-1)
+  
+  #sample from group&#39;s indices
+  train.sample.indices &lt;- sample(selection.vector, size=trainsize, replace=F)
+  test.sample.indices &lt;- setdiff(selection.vector, train.sample.indices)
+  
+  train.sample &lt;- subset(g, g$index %in% train.sample.indices)
+  test.sample &lt;- subset(g, g$index %in% test.sample.indices)
+  
+  #append to appropriate dataframes
+  training.df &lt;- rbind(training.df, train.sample)
+  testing.df &lt;- rbind(testing.df, test.sample)
+}
+                               </code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Report Relevant Values and Write to New Files</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3JlcG9ydCB0aGUgbnVtYmVyIG9mIHNhbXBsZXMgaW4gZWFjaCBjbHVzdGVyLCB0aGUgdHJhaW5pbmcgc2l6ZSwgYW5kIHRoZSB0ZXN0aW5nIHNpemVcbnByaW50KFwiTnVtYmVyIG9mIHNhbXBsZXMgaW4gZWFjaCBvcmlnaW5hbCBjbHVzdGVyOlwiKVxuYGBgIn0= -->
+<pre class="r"><code>#report the number of samples in each cluster, the training size, and the testing size
+print(&quot;Number of samples in each original cluster:&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTnVtYmVyIG9mIHNhbXBsZXMgaW4gZWFjaCBvcmlnaW5hbCBjbHVzdGVyOlwiXG4ifQ== -->
+<pre><code>[1] &quot;Number of samples in each original cluster:&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQodGFibGUoZGF0YSRHQykpXG5gYGAifQ== -->
+<pre class="r"><code>print(table(data$GC))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4gIDE4ICAgMjggICAzOCAgIDQ4ICAgNTggICA2OCAgIDc4ICAgODggICBhOCAgIGI4ICAgYzggXG4gOTg4ICA1NjYgIDM1MSAgNzU1ICAyMjAgIDI3MCAgNjc5ICA0ODYgIDMzMyAxNjkwICAyNjQgXG4ifQ== -->
+<pre><code>
+  18   28   38   48   58   68   78   88   a8   b8   c8 
+ 988  566  351  755  220  270  679  486  333 1690  264 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoXCJOdW1iZXIgb2Ygc2FtcGxlcyBpbiB0cmFpbmluZyBzZXQ6XCIpXG5gYGAifQ== -->
+<pre class="r"><code>print(&quot;Number of samples in training set:&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTnVtYmVyIG9mIHNhbXBsZXMgaW4gdHJhaW5pbmcgc2V0OlwiXG4ifQ== -->
+<pre><code>[1] &quot;Number of samples in training set:&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQobnJvdyh0cmFpbmluZy5kZikpXG5gYGAifQ== -->
+<pre class="r"><code>print(nrow(training.df))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDE2OTRcbiJ9 -->
+<pre><code>[1] 1694</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoXCJOdW1iZXIgb2Ygc2FtcGxlcyBpbiBlYWNoIGRvd24tc2FtcGxlZCBjbHVzdGVyOlwiKVxuYGBgIn0= -->
+<pre class="r"><code>print(&quot;Number of samples in each down-sampled cluster:&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTnVtYmVyIG9mIHNhbXBsZXMgaW4gZWFjaCBkb3duLXNhbXBsZWQgY2x1c3RlcjpcIlxuIn0= -->
+<pre><code>[1] &quot;Number of samples in each down-sampled cluster:&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQodGFibGUodHJhaW5pbmcuZGYkR0MpKVxuYGBgIn0= -->
+<pre class="r"><code>print(table(training.df$GC))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4gMTggIDI4ICAzOCAgNDggIDU4ICA2OCAgNzggIDg4ICBhOCAgYjggIGM4IFxuMTU0IDE1NCAxNTQgMTU0IDE1NCAxNTQgMTU0IDE1NCAxNTQgMTU0IDE1NCBcbiJ9 -->
+<pre><code>
+ 18  28  38  48  58  68  78  88  a8  b8  c8 
+154 154 154 154 154 154 154 154 154 154 154 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoXCJOdW1iZXIgb2Ygc2FtcGxlcyBpbiB0aGUgdGVzdGluZyBzZXQ6XCIpXG5gYGAifQ== -->
+<pre class="r"><code>print(&quot;Number of samples in the testing set:&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTnVtYmVyIG9mIHNhbXBsZXMgaW4gdGhlIHRlc3Rpbmcgc2V0OlwiXG4ifQ== -->
+<pre><code>[1] &quot;Number of samples in the testing set:&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQobnJvdyh0ZXN0aW5nLmRmKSlcbmBgYCJ9 -->
+<pre class="r"><code>print(nrow(testing.df))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDQ5MDhcbiJ9 -->
+<pre><code>[1] 4908</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoXCJOdW1iZXIgb2Ygc2FtcGxlcyBpbiBlYWNoIGNsdXN0ZXIgaW4gdGhlIHRlc3Rpbmcgc2V0OlwiKVxuYGBgIn0= -->
+<pre class="r"><code>print(&quot;Number of samples in each cluster in the testing set:&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTnVtYmVyIG9mIHNhbXBsZXMgaW4gZWFjaCBjbHVzdGVyIGluIHRoZSB0ZXN0aW5nIHNldDpcIlxuIn0= -->
+<pre><code>[1] &quot;Number of samples in each cluster in the testing set:&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQodGFibGUodGVzdGluZy5kZiRHQykpXG5gYGAifQ== -->
+<pre class="r"><code>print(table(testing.df$GC))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4gIDE4ICAgMjggICAzOCAgIDQ4ICAgNTggICA2OCAgIDc4ICAgODggICBhOCAgIGI4ICAgYzggXG4gODM0ICA0MTIgIDE5NyAgNjAxICAgNjYgIDExNiAgNTI1ICAzMzIgIDE3OSAxNTM2ICAxMTAgXG4ifQ== -->
+<pre><code>
+  18   28   38   48   58   68   78   88   a8   b8   c8 
+ 834  412  197  601   66  116  525  332  179 1536  110 </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1dyaXRlIHRoZSBuZXcgdHJhaW5pbmcgYW5kIHRlc3RpbmcgZGF0YWZyYW1lcyB0byBjc3YgZmlsZXMuXG53cml0ZS5jc3YodHJhaW5pbmcuZGYsIGZpbGU9b3V0cHV0LnRyYWluLmZpbGUsIHJvdy5uYW1lcz1UKVxud3JpdGUuY3N2KHRlc3RpbmcuZGYsIGZpbGU9b3V0cHV0LnRlc3QuZmlsZSwgcm93Lm5hbWVzPVQpXG5gYGAifQ== -->
+<pre class="r"><code>#Write the new training and testing dataframes to csv files.
+write.csv(training.df, file=output.train.file, row.names=T)
+write.csv(testing.df, file=output.test.file, row.names=T)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkVhcnRocXVha2UgRGVwdGggQW5hbHlzaXMgLSBDbGVhbmluZyAmIFNwbGl0dGluZyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCmBgYHtyfQ0KI0hlbGxvLCB3b3JsZC4NCmBgYA0KIA0KIA==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkVhcnRocXVha2UgRGVwdGggQW5hbHlzaXMgLSBDbGVhbmluZyAmIFNwbGl0dGluZyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQpUaGUgZGF0YXNldCB1c2VkIGluIHRoZSBmb2xsb3dpbmcgYW5hbHlzaXMgY29tZXMgZnJvbSBhIG5ldHdvcmsgb2Ygc2Vpc21vbWV0ZXJzIGluIENhbGlmb3JuaWEgYW5kIGluY2x1ZGVzIHBoeXNpY2FsIGZlYXR1cmVzIG9mIHNlaXNtaWMgZXZlbnRzIGRlcml2ZWQgZnJvbSB0aGVpciB3YXZlLWZvcm1zLiBUaGUgZGF0YXNldCBjb25zaXN0cyBvZiBldmVudHMgZnJvbSAxMSByZWdpb25zLiBUaGUgaW5pdGlhbCBmZWF0dXJlcyBmb3IgZWFjaCBldmVudCBhcmUNCg0KMS4gRGF0ZQ0KMi4gVGltZQ0KMy4gRXZlbnQgSUQ7IEV2aWQNCjQuIFJlZ2lvbiBvciBncm91cCBjbHVzdGVyIGxhYmVsOyBHQw0KNS4gRXZlbnQgZGVwdGggKGttKTsgRGVwDQo2LiBDb2RhIG1hZ25pdHVkZTsgTWMxDQo3LiBMb3dlciBmcmVxdWVuY3kgY29kYSBtYWduaXR1ZGU7IE1jMg0KOC4gTG9jYWwgbWFnbml0dWRlOyBNTA0KOS4gUC13YXZlIG1vbWVudCBtYWduaXR1ZGU7IE13cA0KMTAuIFMtd2F2ZSBtb21lbnQgbWFnbml0dWRlOyBNd3MNCjExLiBQLXdhdmUgY29ybmVyIGZyZXF1ZW5jeTsgZmNwDQoxMi4gUy13YXZlIGNvcm5lciBmcmVxdWVuY3k7IGZjcw0KDQpBc2lkZTogQXQgdGhpcyB0aW1lLCBJIGFtIG5vdCBhdCBsaWJlcnR5IHRvIHNoYXJlIHRoZSBkYXRhc2V0Lg0KDQoNCmBgYHtyfQ0KI3NldCB1cCBmaWxlIHBhdGhzIGFuZCBsb2FkIG5lY2Vzc2FyeSBsaWJyYXJpZXMNCmxpYnJhcnkocmVhZHIpDQoNCm91dHB1dC50cmFpbi5maWxlIDwtICJDOi9Vc2Vycy9yaWxleS9TZWlzbW9fRGlyZWMvY2xlYW5lZF90cmFpbmluZ19kZi5jc3YiDQpvdXRwdXQudGVzdC5maWxlIDwtICJDOi9Vc2Vycy9yaWxleS9TZWlzbW9fRGlyZWMvY2xlYW5lZF90ZXN0aW5nX2RmLmNzdiINCmlucHV0LmZpbGUgPC0gIkM6L1VzZXJzL3JpbGV5L1NlaXNtb19EaXJlYy9rb3BlcmRhdC5kYXQiDQoNCiNyZWFkIGluIGRhdGENCmRhdGEgPC0gcmVhZC50YWJsZShmaWxlPWlucHV0LmZpbGUsIGhlYWRlcj1UUlVFLCBzZXA9IiIpDQpzdW1tYXJ5KGRhdGEpDQpgYGANCiANCiBEYXRhIENsZWFuaW5nDQogDQogSW4gdGhpcyBkYXRhc2V0LCBOYU5zIGFyZSByZXByZXNlbnRlZCBieSB2YWx1ZXMgb2YgLTkuOTkgKGV4Y2VwdCBmb3IgdmFsdWVzIG9mIERlcCkuIFRoZXNlIG9ic2VydmF0aW9ucyB3aWxsIGJlIGRyb3BwZWQuDQogQWRkaXRpb25hbGx5LCB3ZSB3aWxsIGVuZm9yY2UgbWFnbml0dWRlIGxpbWl0cyBzdWNoIHRoYXQgdGhlIGFic29sdXRlIHZhbHVlcyBvZiB0aGUgZGlmZmVyZW5jZXMgYmV0d2VlbiB0aGUgbG9jYWwgYW5kIGNvZGEgb3IgbW9tZW50IG1hZ25pdHVkZXMgYXJlIG5vIGxhcmdlciB0aGFuIDEuDQogSSB3aWxsIGFsc28gZ2VuZXJhdGUgYSBuZXcgc3RhdGlzdGljIGJ5IGF2ZXJhZ2luZyBmY3MgYW5kIGZjcCwgaW4gY2FzZSBpdCBpcyB1c2VmdWwgZm9yIHRoZSBhbmFseXNpcy4NCiBGaW5hbGx5LCBJIHdpbGwgb25lLWhvdCBlbmNvZGUgdGhlIHJlZ2lvbmFsIGxhYmVscyBHQy4NCiANCmBgYHtyfQ0KI2Ryb3BwaW5nIE5hTnMgYW5kIGVuZm9yY2luZyBtYWduaXR1ZGUgbGltaXRzDQpkYXRhIDwtIHN1YnNldChkYXRhLA0KICAgICAgICAgICAgICAgYWJzKGRhdGEkTUwgLSBkYXRhJE1jMSkgPD0gMSAmIGFicyhkYXRhJE1MIC0gZGF0YSRNYzIpIDw9IDEgJg0KICAgICAgICAgICAgICAgICBhYnMoZGF0YSRNTCAtIGRhdGEkTXdzKSA8PSAxICYgYWJzKGRhdGEkTUwgLSBNd3ApIDw9IDEgJg0KICAgICAgICAgICAgICAgICBkYXRhJE1MID4gLTkuOTkgJiBkYXRhJE1jMSA+IC05Ljk5ICYgZGF0YSRNYzIgPiAtOS45OSAmIGRhdGEkTXdwID4gLTkuOTkgJg0KICAgICAgICAgICAgICAgICBkYXRhJGZjcCA+IC05Ljk5ICYgZGF0YSRNd3MgPiAtOS45OSAmIGRhdGEkZmNzID4tOS45OSkgDQoNCiNjcmVhdGluZyBhdmVyYWdlZCBmY3MvZmNwIHN0YXRpc3RpYw0KZGF0YSRmYyA8LSAoZGF0YSRmY3MgKyBkYXRhJGZjcCkvMg0KDQojZW5jb2RpbmcgR0MNCmRhdGEkR0MgPC0gYXMuZmFjdG9yKGRhdGEkR0MpDQpgYGANCiANCiBTcGl0dGluZyBEYXRhc2V0IEludG8gVGVzdGluZyBhbmQgVHJhaW5pbmcgU3Vic2V0cw0KIA0KIEhlcmUgSSB1c2UgYSA3MC8zMCB0cmFpbmluZy90ZXN0aW5nIHNldC4NCiBBZGRpdGlvbmFsbHksIHNpbmNlIHRoZSBzaXplcyBvZiBlYWNoIG9mIHRoZSBncm91cCBjbHVzdGVycyBhcmUgdW5iYWxhbmNlZCwgSSB3aWxsIHVzZSBkb3duc2FtcGxpbmcgd2l0aG91dCByZXBsYWNlbWVudCB0byBiYWxhbmNlIHRoZSB0cmFpbmluZyBzZXQuDQpgYGB7cn0NCiNzZXQgYSByYW5kb20gc2VlZCBhbmQgZXN0YWJsaXNoIHRyYWluaW5nIHBlcmNlbnQNCnNldC5zZWVkKDE3KQ0KcGVyY2VudC50cmFpbiA8LSAwLjcNCg0KI3NvcnQgZGF0YSBzbyB0aGF0IGFsbCBjbHVzdGVycyBhcmUgZ3JvdXBlZCB0b2dldGhlci4NCmRhdGEgPC0gZGF0YVtvcmRlcihkYXRhJEdDKSwgXQ0KDQojYWRkIGFuIGluZGV4IHRvIGhlbHAgd2l0aCBkb3duc2FtcGxpbmcNCmRhdGEkaW5kZXggPC0gMTpucm93KGRhdGEpDQoNCiNsaXN0IGFsbCBncm91cHMgDQpncm91cC5uYW1lcyA8LSB1bmlxdWUoZGF0YSRHQykNCnByaW50KGdyb3VwLm5hbWVzKQ0KDQojc3Vic2V0IGdyb3VwcyBhbmQgcHV0IHRoZW0gaW4gYW4gaXRlcmFibGUgbGlzdA0KZ3JvdXAxOCA8LSBzdWJzZXQoZGF0YSwgR0MgPT0gIjE4IikNCmdyb3VwMjggPC0gc3Vic2V0KGRhdGEsIEdDID09ICIyOCIpDQpncm91cDM4IDwtIHN1YnNldChkYXRhLCBHQyA9PSAiMzgiKQ0KZ3JvdXA0OCA8LSBzdWJzZXQoZGF0YSwgR0MgPT0gIjQ4IikNCmdyb3VwNTggPC0gc3Vic2V0KGRhdGEsIEdDID09ICI1OCIpDQpncm91cDY4IDwtIHN1YnNldChkYXRhLCBHQyA9PSAiNjgiKQ0KZ3JvdXA3OCA8LSBzdWJzZXQoZGF0YSwgR0MgPT0gIjc4IikNCmdyb3VwODggPC0gc3Vic2V0KGRhdGEsIEdDID09ICI4OCIpDQpncm91cGE4IDwtIHN1YnNldChkYXRhLCBHQyA9PSAiYTgiKQ0KZ3JvdXBiOCA8LSBzdWJzZXQoZGF0YSwgR0MgPT0gImI4IikNCmdyb3VwYzggPC0gc3Vic2V0KGRhdGEsIEdDID09ICJjOCIpDQoNCmdyb3VwcyA8LSBsaXN0KGdyb3VwMTgsIGdyb3VwMjgsIGdyb3VwMzgsIGdyb3VwNDgsIGdyb3VwNTgsIGdyb3VwNjgsIGdyb3VwNzgsIGdyb3VwODgsIGdyb3VwYTgsIGdyb3VwYjgsIGdyb3VwYzgpDQoNCmBgYA0KRG93bnNhbXBsaW5nDQoNCmBgYHtyfQ0KI2xvb3AgdGhyb3VnaCB1bmlxdWUgZ3JvdXBzIGFuZCBmaW5kIHNtYWxsZXN0IGdyb3VwDQptaW5zaXplIDwtIDEwMDAwDQoNCmZvcihnIGluIGdyb3Vwcyl7DQogIGlmKG5yb3coZykgPD0gbWluc2l6ZSl7bWluc2l6ZSA8LSBucm93KGcpfQ0KfQ0KDQojc2V0IG91ciBzdWJncm91cCBzaXplDQp0cmFpbnNpemUgPC0gZmxvb3IobWluc2l6ZSpwZXJjZW50LnRyYWluKQ0KDQojY3JlYXRlIHdheXMgdG8gc3RvcmUgZG93bnNhbXBsZWQgZ3JvdXBzIGFuZCByZXRhaW4gdW51c2VkIGRhdGEgZm9yIHRoZSB0ZXN0aW5nIHNldA0KdHJhaW5pbmcuZGYgPC0gZGF0YS5mcmFtZShtYXRyaXgobmNvbCA9IG5jb2woZGF0YSksIG5yb3cgPSAwKSkNCmNvbG5hbWVzKHRyYWluaW5nLmRmKSA8LSBuYW1lcyhkYXRhKQ0KDQp0ZXN0aW5nLmRmIDwtIGRhdGEuZnJhbWUobWF0cml4KG5jb2wgPSBuY29sKGRhdGEpLCBucm93ID0gMCkpDQpjb2xuYW1lcyh0ZXN0aW5nLmRmKSA8LSBuYW1lcyhkYXRhKQ0KDQojc2FtcGxpbmcNCmZvcihnIGluIGdyb3Vwcyl7DQogIGdyb3VwLm5hbWUgPC0gZyRHQ1sxXQ0KICANCiAgI2dldCB2ZWN0b3Igb2YgaW5kaWNlcyBmb3IgZWFjaCB1bmlxdWUgZ3JvdXANCiAgc3RhcnQuZy5pIDwtIGckaW5kZXhbMV0NCiAgc2VsZWN0aW9uLnZlY3RvciA8LSBzdGFydC5nLmk6KHN0YXJ0LmcuaStucm93KGcpLTEpDQogIA0KICAjc2FtcGxlIGZyb20gZ3JvdXAncyBpbmRpY2VzDQogIHRyYWluLnNhbXBsZS5pbmRpY2VzIDwtIHNhbXBsZShzZWxlY3Rpb24udmVjdG9yLCBzaXplPXRyYWluc2l6ZSwgcmVwbGFjZT1GKQ0KICB0ZXN0LnNhbXBsZS5pbmRpY2VzIDwtIHNldGRpZmYoc2VsZWN0aW9uLnZlY3RvciwgdHJhaW4uc2FtcGxlLmluZGljZXMpDQogIA0KICB0cmFpbi5zYW1wbGUgPC0gc3Vic2V0KGcsIGckaW5kZXggJWluJSB0cmFpbi5zYW1wbGUuaW5kaWNlcykNCiAgdGVzdC5zYW1wbGUgPC0gc3Vic2V0KGcsIGckaW5kZXggJWluJSB0ZXN0LnNhbXBsZS5pbmRpY2VzKQ0KICANCiAgI2FwcGVuZCB0byBhcHByb3ByaWF0ZSBkYXRhZnJhbWVzDQogIHRyYWluaW5nLmRmIDwtIHJiaW5kKHRyYWluaW5nLmRmLCB0cmFpbi5zYW1wbGUpDQogIHRlc3RpbmcuZGYgPC0gcmJpbmQodGVzdGluZy5kZiwgdGVzdC5zYW1wbGUpDQp9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgDQpgYGANClJlcG9ydCBSZWxldmFudCBWYWx1ZXMgYW5kIFdyaXRlIHRvIE5ldyBGaWxlcw0KDQpgYGB7cn0NCiNyZXBvcnQgdGhlIG51bWJlciBvZiBzYW1wbGVzIGluIGVhY2ggY2x1c3RlciwgdGhlIHRyYWluaW5nIHNpemUsIGFuZCB0aGUgdGVzdGluZyBzaXplDQpwcmludCgiTnVtYmVyIG9mIHNhbXBsZXMgaW4gZWFjaCBvcmlnaW5hbCBjbHVzdGVyOiIpDQpwcmludCh0YWJsZShkYXRhJEdDKSkNCg0KcHJpbnQoIk51bWJlciBvZiBzYW1wbGVzIGluIHRyYWluaW5nIHNldDoiKQ0KcHJpbnQobnJvdyh0cmFpbmluZy5kZikpDQoNCnByaW50KCJOdW1iZXIgb2Ygc2FtcGxlcyBpbiBlYWNoIGRvd24tc2FtcGxlZCBjbHVzdGVyOiIpDQpwcmludCh0YWJsZSh0cmFpbmluZy5kZiRHQykpDQoNCnByaW50KCJOdW1iZXIgb2Ygc2FtcGxlcyBpbiB0aGUgdGVzdGluZyBzZXQ6IikNCnByaW50KG5yb3codGVzdGluZy5kZikpDQoNCnByaW50KCJOdW1iZXIgb2Ygc2FtcGxlcyBpbiBlYWNoIGNsdXN0ZXIgaW4gdGhlIHRlc3Rpbmcgc2V0OiIpDQpwcmludCh0YWJsZSh0ZXN0aW5nLmRmJEdDKSkNCg0KI1dyaXRlIHRoZSBuZXcgdHJhaW5pbmcgYW5kIHRlc3RpbmcgZGF0YWZyYW1lcyB0byBjc3YgZmlsZXMuDQp3cml0ZS5jc3YodHJhaW5pbmcuZGYsIGZpbGU9b3V0cHV0LnRyYWluLmZpbGUsIHJvdy5uYW1lcz1UKQ0Kd3JpdGUuY3N2KHRlc3RpbmcuZGYsIGZpbGU9b3V0cHV0LnRlc3QuZmlsZSwgcm93Lm5hbWVzPVQpDQpgYGANCg0KIA0KIA==</div>
 
 
 

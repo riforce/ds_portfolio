@@ -2,9 +2,158 @@
 title: "Earthquake Depth Analysis - Cleaning & Splitting"
 output: html_notebook
 ---
+The dataset used in the following analysis comes from a network of seismometers in California and includes physical features of seismic events derived from their wave-forms. The dataset consists of events from 11 regions. The initial features for each event are
+
+1. Date
+2. Time
+3. Event ID; Evid
+4. Region or group cluster label; GC
+5. Event depth (km); Dep
+6. Coda magnitude; Mc1
+7. Lower frequency coda magnitude; Mc2
+8. Local magnitude; ML
+9. P-wave moment magnitude; Mwp
+10. S-wave moment magnitude; Mws
+11. P-wave corner frequency; fcp
+12. S-wave corner frequency; fcs
+
+Aside: At this time, I am not at liberty to share the dataset.
+
 
 ```{r}
-#Hello, world.
+#set up file paths and load necessary libraries
+library(readr)
+
+output.train.file <- "C:/Users/riley/Seismo_Direc/cleaned_training_df.csv"
+output.test.file <- "C:/Users/riley/Seismo_Direc/cleaned_testing_df.csv"
+input.file <- "C:/Users/riley/Seismo_Direc/koperdat.dat"
+
+#read in data
+data <- read.table(file=input.file, header=TRUE, sep="")
+summary(data)
 ```
+ 
+ Data Cleaning
+ 
+ In this dataset, NaNs are represented by values of -9.99 (except for values of Dep). These observations will be dropped.
+ Additionally, we will enforce magnitude limits such that the absolute values of the differences between the local and coda or moment magnitudes are no larger than 1.
+ I will also generate a new statistic by averaging fcs and fcp, in case it is useful for the analysis.
+ Finally, I will one-hot encode the regional labels GC.
+ 
+```{r}
+#dropping NaNs and enforcing magnitude limits
+data <- subset(data,
+               abs(data$ML - data$Mc1) <= 1 & abs(data$ML - data$Mc2) <= 1 &
+                 abs(data$ML - data$Mws) <= 1 & abs(data$ML - Mwp) <= 1 &
+                 data$ML > -9.99 & data$Mc1 > -9.99 & data$Mc2 > -9.99 & data$Mwp > -9.99 &
+                 data$fcp > -9.99 & data$Mws > -9.99 & data$fcs >-9.99) 
+
+#creating averaged fcs/fcp statistic
+data$fc <- (data$fcs + data$fcp)/2
+
+#encoding GC
+data$GC <- as.factor(data$GC)
+```
+ 
+ Spitting Dataset Into Testing and Training Subsets
+ 
+ Here I use a 70/30 training/testing set.
+ Additionally, since the sizes of each of the group clusters are unbalanced, I will use downsampling without replacement to balance the training set.
+```{r}
+#set a random seed and establish training percent
+set.seed(17)
+percent.train <- 0.7
+
+#sort data so that all clusters are grouped together.
+data <- data[order(data$GC), ]
+
+#add an index to help with downsampling
+data$index <- 1:nrow(data)
+
+#list all groups 
+group.names <- unique(data$GC)
+print(group.names)
+
+#subset groups and put them in an iterable list
+group18 <- subset(data, GC == "18")
+group28 <- subset(data, GC == "28")
+group38 <- subset(data, GC == "38")
+group48 <- subset(data, GC == "48")
+group58 <- subset(data, GC == "58")
+group68 <- subset(data, GC == "68")
+group78 <- subset(data, GC == "78")
+group88 <- subset(data, GC == "88")
+groupa8 <- subset(data, GC == "a8")
+groupb8 <- subset(data, GC == "b8")
+groupc8 <- subset(data, GC == "c8")
+
+groups <- list(group18, group28, group38, group48, group58, group68, group78, group88, groupa8, groupb8, groupc8)
+
+```
+Downsampling
+
+```{r}
+#loop through unique groups and find smallest group
+minsize <- 10000
+
+for(g in groups){
+  if(nrow(g) <= minsize){minsize <- nrow(g)}
+}
+
+#set our subgroup size
+trainsize <- floor(minsize*percent.train)
+
+#create ways to store downsampled groups and retain unused data for the testing set
+training.df <- data.frame(matrix(ncol = ncol(data), nrow = 0))
+colnames(training.df) <- names(data)
+
+testing.df <- data.frame(matrix(ncol = ncol(data), nrow = 0))
+colnames(testing.df) <- names(data)
+
+#sampling
+for(g in groups){
+  group.name <- g$GC[1]
+  
+  #get vector of indices for each unique group
+  start.g.i <- g$index[1]
+  selection.vector <- start.g.i:(start.g.i+nrow(g)-1)
+  
+  #sample from group's indices
+  train.sample.indices <- sample(selection.vector, size=trainsize, replace=F)
+  test.sample.indices <- setdiff(selection.vector, train.sample.indices)
+  
+  train.sample <- subset(g, g$index %in% train.sample.indices)
+  test.sample <- subset(g, g$index %in% test.sample.indices)
+  
+  #append to appropriate dataframes
+  training.df <- rbind(training.df, train.sample)
+  testing.df <- rbind(testing.df, test.sample)
+}
+                               
+```
+Report Relevant Values and Write to New Files
+
+```{r}
+#report the number of samples in each cluster, the training size, and the testing size
+print("Number of samples in each original cluster:")
+print(table(data$GC))
+
+print("Number of samples in training set:")
+print(nrow(training.df))
+
+print("Number of samples in each down-sampled cluster:")
+print(table(training.df$GC))
+
+print("Number of samples in the testing set:")
+print(nrow(testing.df))
+
+print("Number of samples in each cluster in the testing set:")
+print(table(testing.df$GC))
+
+#Write the new training and testing dataframes to csv files.
+write.csv(training.df, file=output.train.file, row.names=T)
+write.csv(testing.df, file=output.test.file, row.names=T)
+```
+
  
  

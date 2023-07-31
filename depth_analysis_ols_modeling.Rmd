@@ -27,7 +27,7 @@ test <- read_csv(input.test.file)
 #investigating collinearity between Mc1 and Mc2
 print(cor(train$Mc1, train$Mc2))
 ```
-The correlation coefficient between Mc1 and Mc2 is 0.986. This indicates that these features are highly collinear, and are thus redundant as predictors. Further analysis explores which coda magnitude performs better in an OLS model
+The correlation coefficient between Mc1 and Mc2 is 0.986. This indicates that these features are highly collinear, and are thus redundant as predictors. Further analysis explores which coda magnitude performs better in an OLS model.
 
 Model Fitting
 
@@ -60,7 +60,8 @@ The coefficients for ML and Mc2 are 3.766 and -4.574, respectively, with an inte
   print("Coefficients for Dep ~ ML + Mc1:")
   print(model_mlmc1$coefficients)
 ```
-The RMSE for this model is 3.847, slightly higher than for the previous model using Mc2. The coefficients for ML and Mc1 are 3.198 and -4.310, respectively, with an intercept (or bias) of 10.487. We can interpret this to mean that for every one-unit increase in depth, there is a corresponding increase in ML and decrease in Mc1. 
+The RMSE for this model is 3.847, slightly higher than for the previous model using Mc2. 
+The coefficients for ML and Mc1 are 3.198 and -4.310, respectively, with an intercept (or bias) of 10.487. We can interpret this to mean that for every one-unit increase in depth, there is a corresponding increase in ML and decrease in Mc1. 
 
 ```{r}
 #fit an ordinary least squares for ML and Mc2 where we specify coefficients of +1 and -1 respectively.

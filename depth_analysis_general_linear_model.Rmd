@@ -1,0 +1,134 @@
+---
+title: "Modeling Depth With a General Linear Model"
+output: html_notebook
+---
+
+```{r}
+#loading libraries and reading in data
+
+library(readr)
+library(Metrics)
+library(glmnet)
+
+
+input.train.file = "C:/Users/riley/Seismo_Direc/cleaned_training_df.csv"
+input.test.file = "C:/Users/riley/Seismo_Direc/cleaned_testing_df.csv"
+
+train <- read_csv(input.train.file)
+test <- read_csv(input.test.file)
+```
+Model Fitting 
+
+The training and testing datasets contain more than just the features we'd like to use to predict depth (date, time, etc.). To streamline the model fitting, I'll make some subsets of this dataframe containing only the features we'd like to use to predict depth.
+As per the OLS analysis, I'll only be including Mc2. Additionally, I will be using the average of fcs and fcp: fc.
+```{r}
+wave_features <- c("ML", "Mc2", "Mws", "Mwp", "fc", "Dep")
+train_features <- subset(train, select = wave_features)
+test_features <- subset(test, select = wave_features)
+```
+
+
+[motivation for using lasso]
+```{r}
+#First, we need an x matrix and a y vector to perform the lasso on the data.
+train_matrix <- model.matrix(Dep ~ ., train_features)[, -1]
+test_matrix <- model.matrix(Dep ~ ., test_features)[, -1]
+
+#y is a vector of depths
+y <- train$Dep
+
+#we'll make a grid for the tuning parameter lambda
+grid <- 10^seq(10, -2, length = 100)
+
+#fit the lasso model using alpha = 1 to utilize glmnet's feature selection 
+lasso.mod <- glmnet(train_matrix, y, alpha = 1, lambda = grid)
+```
+
+Next, we cross-validate to find the best value for lambda. This allow us to determine which features are most important in predicting depth, since lambda controls how aggressive the lasso model's feature selection is. 
+
+```{r}
+set.seed(1)
+cv.out <- cv.glmnet(train_matrix, y, alpha = 1)
+best.lambda <- cv.out$lambda.min
+```
+
+Using our model and the value of lambda that minimizes our error, we can make some predictions and evaluate the model.
+
+```{r}
+lasso.predictions <- predict(lasso.mod, s = best.lambda, newx = test_matrix)
+lasso.mse <- rmse(test$Dep, lasso.predictions)
+
+#print error
+print("Lasso RMSE:")
+print(lasso.mse)
+```
+The RMSE for the lasso model is 3.695. Recall that the best OLS model produced and RMSE of 3.774. This indicates that the features selected by this model are better predictors of depth. So, what are they?
+
+```{r}
+coeffs <- predict(lasso.mod, s = best.lambda, type = "coefficients")
+
+print("Coefficients used in the GLM: ")
+print(coeffs)
+```
+Here, we see that ML, Mc2, Mws, Mwp, and fc have been selected. However, we may be able to improve this. To see where we have room to simplify, we can investigate the collinearity between similar features.
+
+```{r}
+#let's check the correlation coefficient between Mws and Mwp:
+correlation <- cor(train$Mws, train$Mwp)
+print(correlation)
+```
+As we can see, Mws and Mwp are highly collinear, with a Pearson correlation coefficient of 0.975. In the interest of a simpler model, we will see if Mws, Mwp, or the average of the two serves as a better feature.
+
+```{r}
+train$mw <- (train$Mws + train$Mwp)/2
+test$mw <- (test$Mws + test$Mwp)/2
+
+#train three models, using Mws, Mwp, and their average
+mod1 <- lm(Dep ~ ML + Mc2 + Mws + fc, data = train)
+mod2 <- lm(Dep ~ ML + Mc2 + Mwp + fc, data = train)
+mod3 <- lm(Dep ~ ML + Mc2 + mw + fc, data = train)
+
+#let's see which model performs best:
+pred1 <- predict(mod1, newdata = test)
+pred2 <- predict(mod2, newdata = test)
+pred3 <- predict(mod3, newdata = test)
+
+rmse1 <- rmse(test$Dep, pred1)
+print("RMSE using Mws: ")
+print(rmse1)
+rmse2 <- rmse(test$Dep, pred2)
+print("RMSE using Mwp: ")
+print(rmse2)
+rmse3 <- rmse(test$Dep, pred3)
+print("RMSE using averaged feature: ")
+print(rmse3)
+
+```
+Based on this analysis, Mws is the best feature to use here. Although the RMSE for this model is 3.700, higher than the lasso model using both Mws and Mwp, the difference is very small, and a low price to pay for the increase in simplicity (and thus interpretability) of the model.
+
+```{r}
+#let's check out the coefficients:
+print(mod1$coefficients)
+```
+These coefficients tell us that increases in ML and the average of fcs and fcp correspond to an increase in depth, while decreases in Mc2 and Mws correspond an increase in depth. 
+
+Visualization
+```{r}
+#plotting residuals
+test$lasso.resids <- test$Dep - lasso.predictions
+test$glm.resids <- test$Dep - pred1
+
+plot(test$Dep, test$lasso.resids, main = "Lasso Model Residuals")
+plot(test$Dep, test$glm.resids, main = "General Linear Model Residuals")
+```
+
+The difference is subtle, but the slope of the residual trend line for the General Linear Model is shallower than that of the Lasso model. 
+
+We can also find "baseline" residuals, simply using the average depth of the training data as the prediction.
+```{r}
+baseline.prediction <- sum(train$Dep)/length(train$Dep)[1]
+test$baseline_resids <- test$Dep - baseline.prediction
+
+plot(test$Dep, test$baseline_resids)
+```
+

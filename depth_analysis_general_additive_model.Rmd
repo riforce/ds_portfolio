@@ -1,0 +1,75 @@
+---
+title: "Modeling Depth With A General Additive Model"
+output: html_notebook
+---
+
+[Motivate why I'm using a GAM and natural splines]
+
+```{r}
+#loading libraries and reading in data
+
+library(readr)
+library(Metrics)
+library(glmnet)
+library(boot)
+library(gam)
+library(splines)
+library(mltools)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+
+
+input.train.file = "C:/Users/riley/Seismo_Direc/cleaned_training_df.csv"
+input.test.file = "C:/Users/riley/Seismo_Direc/cleaned_testing_df.csv"
+
+train <- read_csv(input.train.file)
+test <- read_csv(input.test.file)
+```
+
+Model Fitting
+
+[cite gridsearch for dof using random seed = 1]
+ML = 2
+fc = 6
+Mc2 = 2
+Mws = 10
+```{r}
+#set our degrees of freedom
+ml.dof <- 2
+fc.dof <- 6
+mc2.dof <- 2
+mws.dof <- 10
+
+#get grids for predicting and plotting
+ml.grid <- seq(from = range(test$ML)[1], to = range(test$ML)[2])
+fc.grid <- seq(from = range(test$fc)[1], to = range(test$fc)[2])
+mc2.grid <- seq(from = range(test$Mc2)[1], to = range(test$Mc2)[2])
+mws.grid <- seq(from = range(test$Mws)[1], to = range(test$Mws)[2])
+
+#use natural splines to fit the general additive model
+spline.mod <- gam(Dep ~ ns(ML, df = ml.dof)
+                  + ns(fc, df = fc.dof)
+                  + ns(Mc2, df = mc2.dof)
+                  + ns(Mws, df = mws.dof),
+                  data = train)
+
+print(summary(spline.mod))
+```
+[interpretation here]
+
+Model Performance
+```{r}
+pred <- predict(spline.mod, newdata = test)
+rmse <- rmse(test$Dep, pred)
+print("RMSE for GAM using natural splines:")
+print(rmse)
+```
+The RMSE for the GAM using natural splines with the cross-validated degrees of freedom is 3.677. This is lower than any of our OLS models. [Insert an explanation as to why this is the case.]
+
+Visualization
+```{r}
+test$resids <- test$Dep - pred
+plot(test$Dep, test$resids, main = "Depth Residuals for Natural Spline GAM")
+```
+

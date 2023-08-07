@@ -91,4 +91,3 @@ test$resids <- test$Dep - y_test
 
 write.csv(test$resids,file="C:/Users/riley/ds_portfolio/ml_min_mc_resids.csv", row.names=TRUE)
 ```
-

@@ -75,6 +75,5 @@ plot(test$Dep, test$resids, main = "Depth Residuals for Natural Spline GAM")
 
 Save residuals in CSV to access later.
 ```{r}
-write.csv(test$resids, file = "C:/Users/riley/ds_portfolio/spline_model_test_resids.csv")
+write.csv(test$resids, file = "C:/Users/riley/ds_portfolio/depth_analysis/spline_model_test_resids.csv")
 ```
-

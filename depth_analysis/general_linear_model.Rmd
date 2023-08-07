@@ -133,7 +133,6 @@ plot(test$Dep, test$baseline_resids)
 ```
 Save the residuals in a CSV
 ```{r}
-write.csv(test$baseline_resids, file = "C:/Users/riley/ds_portfolio/baseline_resids.csv")
-write.csv(test$glm.resids, file = "C:/Users/riley/ds_portfolio/fourfeatureOLS_resids.csv")
+write.csv(test$baseline_resids, file = "C:/Users/riley/ds_portfolio/depth_analysis/baseline_resids.csv")
+write.csv(test$glm.resids, file = "C:/Users/riley/ds_portfolio/depth_analysis/fourfeatureOLS_resids.csv")
 ```
-

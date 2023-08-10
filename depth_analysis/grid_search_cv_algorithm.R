@@ -1,4 +1,24 @@
-#[motivate wtf this is]
+#*
+#*This script is a four-dimensional grid search written for
+#*determining the best degrees of freedom for each of four natural
+#*spline functions to be used in the GAM in the notebook general_additive_model.Rmd.
+#*
+#*During the grid-search on the degrees of freedom, we fit a 
+#*spline to 90% of the training data and score this model against the 
+#*other 10% of the training data. This scoring is performed 10 times
+#*such that every subset of training data acts as a validation set for
+#*the other 90% of the data. 
+#*
+#*These 10 validation scores are averaged and represent each the cross-validated
+#*scores of each degree-of-freedom combination. This 10-fold cross-validation
+#*results in an estimation of the model's test performance for every 
+#*degree-of-freedom combination and allows us to combat over-fitting in the GAM, since
+#*each validation subset serves as a proxy for the test set on which the model will
+#*be finally evaluated. 
+#*
+#*The grid_search function prints a list of degrees of freedom for each parameter,
+#* which can then be used in the GAM.
+#*
 
 grid_search <- function(input.train.file = "C:/Users/riley/Seismo_Direc/cleaned_training_df.csv",
                         input.test.file = "C:/Users/riley/Seismo_Direc/cleaned_testing_df.csv"){

@@ -3,6 +3,8 @@ title: "Modeling Depth With a General Linear Model"
 output: html_notebook
 ---
 
+In this notebook, I use a more general model to estimate event depth based on all of the physics-based features. The goal of expanding the simple OLS model to more features is to discover if any of the other parameters are better predictors of depth.
+
 ```{r}
 #loading libraries and reading in data
 
@@ -20,7 +22,10 @@ test <- read_csv(input.test.file)
 Model Fitting 
 
 The training and testing datasets contain more than just the features we'd like to use to predict depth (date, time, etc.). To streamline the model fitting, I'll make some subsets of this dataframe containing only the features we'd like to use to predict depth.
-As per the OLS analysis, I'll only be including Mc2. Additionally, I will be using the average of fcs and fcp: fc.
+As per the OLS analysis, I'll only be including Mc2, as it outperforms Mc1 in the simple OLS setting.
+
+Additionally, I will be using the average of fcs and fcp: fc. Recall from previous analyses that the Pearson correlation coefficient between these two quantities was 0.423. Since they measure physically distinct properties of the seismic wave, and since fcp may be more susceptible to radiation pattern effects, this aggregate feature may serve as a better predictor than either of them alone or in conjunction.
+
 ```{r}
 wave_features <- c("ML", "Mc2", "Mws", "Mwp", "fc", "Dep")
 train_features <- subset(train, select = wave_features)
@@ -28,7 +33,9 @@ test_features <- subset(test, select = wave_features)
 ```
 
 
-[motivation for using lasso]
+Least-Absolute Shrinkage and Selection Operator (Lasso) linear regression is a powerful tool for feature selection. Based on a tuning parameter (lambda), we can have the model select the strongest predictors of depth. In this way, rather than specify our favored features, we allow the model to choose them in a way that minimizes the test error; features with minimal impact will have coefficient estimates reduced to zero.
+Compare this to Ridge regression, which similarily minimizes the contributions of weaker predictors but does not minimize any coefficient estimates to zero but rather squeezes them towards zero. We prefer lasso to ridge, as lasso is more likely to produce a more interpretable model with fewer features.
+
 ```{r}
 #First, we need an x matrix and a y vector to perform the lasso on the data.
 train_matrix <- model.matrix(Dep ~ ., train_features)[, -1]
@@ -44,7 +51,7 @@ grid <- 10^seq(10, -2, length = 100)
 lasso.mod <- glmnet(train_matrix, y, alpha = 1, lambda = grid)
 ```
 
-Next, we cross-validate to find the best value for lambda. This allow us to determine which features are most important in predicting depth, since lambda controls how aggressive the lasso model's feature selection is. 
+Next, we cross-validate to find the best value for the tuning parameter lambda. This allow us to determine which features are most important in predicting depth, since lambda controls how aggressive the lasso model's feature selection is. 
 
 ```{r}
 set.seed(1)
@@ -52,7 +59,7 @@ cv.out <- cv.glmnet(train_matrix, y, alpha = 1)
 best.lambda <- cv.out$lambda.min
 ```
 
-Using our model and the value of lambda that minimizes our error, we can make some predictions and evaluate the model.
+Using our lasso model and the value of lambda that minimizes our error, we can make some predictions and evaluate the model.
 
 ```{r}
 lasso.predictions <- predict(lasso.mod, s = best.lambda, newx = test_matrix)
@@ -131,6 +138,9 @@ test$baseline_resids <- test$Dep - baseline.prediction
 
 plot(test$Dep, test$baseline_resids)
 ```
+As we suspected from the residual plot in the OLS analysis, there is a clear linear relationship between the residuals and the depth. It appears that, in general, the deeper the event, the "worse" the model performs (the higher the residuals). The sweet-spot seems to be at a depth at around 7 or 8 km, where the residuals are clustered around zero. 
+
+
 Save the residuals in a CSV
 ```{r}
 write.csv(test$baseline_resids, file = "C:/Users/riley/ds_portfolio/depth_analysis/baseline_resids.csv")

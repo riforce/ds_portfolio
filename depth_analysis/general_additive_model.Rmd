@@ -2,8 +2,9 @@
 title: "Modeling Depth With A General Additive Model"
 output: html_notebook
 ---
+The previous OLS and Lasso models only explained a small proportion of the observed event depths, as evidenced by the linear relationship between depths and residuals. We anticipate that a model with more flexibility will improve our predictive ability. For this task, I implement a General Additive Model (GAM) using natural splines. 
+These natural splines are functions that allow more flexibility than requiring the relationship between parameters and output to be linear. Additionally, the additive property of the GAM means that the model maintains a fair level of interpretability, as we can examine each function comprising it and see how depth responds to changes in each feature (while holding the rest constant). 
 
-[Motivate why I'm using a GAM and natural splines]
 
 ```{r}
 #loading libraries and reading in data
@@ -29,7 +30,9 @@ test <- read_csv(input.test.file)
 
 Model Fitting
 
-[cite gridsearch for dof using random seed = 1]
+When using natural splines, we don't know beforehand the number of degrees of freedom (our hyper-parameters) for each parameter. To estimate these hyper-parameters, we perform a four-dimensional grid search, written in the script: grid_search_cv_algorithm.R. 
+This method of cross-validation results in an estimate for the degrees of freedom, and we adopt the degrees of freedom for each spline that minimized the cross-validated RMS error. 
+
 ML = 2
 fc = 6
 Mc2 = 2
@@ -53,10 +56,7 @@ spline.mod <- gam(Dep ~ ns(ML, df = ml.dof)
                   + ns(Mc2, df = mc2.dof)
                   + ns(Mws, df = mws.dof),
                   data = train)
-
-print(summary(spline.mod))
 ```
-[interpretation here]
 
 Model Performance
 ```{r}
@@ -65,13 +65,14 @@ rmse <- rmse(test$Dep, pred)
 print("RMSE for GAM using natural splines:")
 print(rmse)
 ```
-The RMSE for the GAM using natural splines with the cross-validated degrees of freedom is 3.677. This is lower than any of our OLS models. [Insert an explanation as to why this is the case.]
+The RMSE for the GAM using natural splines with the cross-validated degrees of freedom is 3.677. This is lower than the previous OLS and Lasso models. In this instance, as the model flexibility increased from ML - Mc2 to the four-feature OLS model, to the four-feature GAM model, our ability to estimate depth improved. This provides evidence that a more flexible model is necessary to capture non-linearity in the relationship between our predictors and depth. 
 
 Visualization
 ```{r}
 test$resids <- test$Dep - pred
 plot(test$Dep, test$resids, main = "Depth Residuals for Natural Spline GAM")
 ```
+Again, we see the same linear relationship between the depths and residuals, indicating that although the physics-based features of the event signals are slightly predictive of depth, most of the variance is explained by the bias of the model. 
 
 Save residuals in CSV to access later.
 ```{r}

@@ -17,8 +17,7 @@ The dataset used in the following analysis comes from a network of seismometers 
 11. P-wave corner frequency; fcp
 12. S-wave corner frequency; fcs
 
-Aside: At this time, I am not at liberty to share the dataset.
-
+Note: At this time, I am not at liberty to share the dataset.
 
 ```{r}
 #set up file paths and load necessary libraries
@@ -36,7 +35,7 @@ summary(data)
  Data Cleaning
  
  In this dataset, NaNs are represented by values of -9.99 (except for values of Dep). These observations will be dropped.
- Additionally, we will enforce magnitude limits such that the absolute values of the differences between the local and coda or moment magnitudes are no larger than 1.
+ Additionally, we will enforce magnitude limits such that the absolute values of the differences between the local and coda or moment magnitudes are no larger than 1. This results in a dataset with 6638 events.
  I will also generate a new statistic by averaging fcs and fcp, in case it is useful for the analysis.
  Finally, I will one-hot encode the regional labels GC.
  
@@ -57,8 +56,9 @@ data$GC <- as.factor(data$GC)
  
  Spitting Dataset Into Testing and Training Subsets
  
- Here I use a 70/30 training/testing set.
- Additionally, since the sizes of each of the group clusters are unbalanced, I will use downsampling without replacement to balance the training set.
+For use in modelling, I partition the dataset into a training set for model fitting and an independent test set to use for scoring and comparing models. The training set will include 70% of the dataset, and the testing set will include the other 30%. This split results of a training dataset consisting of a number n events equal to the size of the smallest cluster from each of the 11 regional clusters, resulting in a total of n * 11 events in the training set. 
+Additionally, since the sizes of each of the group clusters are unbalanced I chose to emphasize equal membership from each cluster during training. This will hopefully prevent a pathological bias where a larger cluster like GC 'b8' overwhelms a relatively small cluster like GC '58.' Additionally, since the models I'll be fitting are simple in that regression coefficients can be adequately estimated with a small number of examples, the relatively small training set size is not an issue.
+
 ```{r}
 #set a random seed and establish training percent
 set.seed(17)
@@ -92,10 +92,13 @@ groups <- list(group18, group28, group38, group48, group58, group68, group78, gr
 ```
 Downsampling
 
+
+I will use downsampling without replacement to balance the training set with respect to the group clusters. Any unused observations in these samples will be re-added to the testing set. 
+
+Though the group clusters are balanced and we waste no observations in downsampling, this splitting strategy results in better validation for larger clusters than for smaller clusters, since the larger clusters will have more test observations. However, this will not prevent us from having sufficiently interpretable results.
 ```{r}
 #loop through unique groups and find smallest group
 minsize <- 10000
-
 for(g in groups){
   if(nrow(g) <= minsize){minsize <- nrow(g)}
 }
@@ -110,6 +113,8 @@ colnames(training.df) <- names(data)
 testing.df <- data.frame(matrix(ncol = ncol(data), nrow = 0))
 colnames(testing.df) <- names(data)
 
+#make sure the seed is still 17
+set.seed(17)
 #sampling
 for(g in groups){
   group.name <- g$GC[1]
@@ -131,6 +136,7 @@ for(g in groups){
 }
                                
 ```
+
 Report Relevant Values and Write to New Files
 
 ```{r}
@@ -138,18 +144,30 @@ Report Relevant Values and Write to New Files
 print("Number of samples in each original cluster:")
 print(table(data$GC))
 
+#reality check: minsize should be equal to the number of samples in the smallest cluster
+print(minsize * 0.7)
+```
+Here we can see the relative sizes of each cluster. The region with the fewest events is GC '58' with 220 observations, and the region with the most events is GC 'b8' with 1690 observations. We can then verify that 70% of 220 ( = 154) has been selected as the minimum size for our downsampled groups. 
+
+```{r}
 print("Number of samples in training set:")
 print(nrow(training.df))
+```
+Here we verify that the number of samples in the training set is indeed the minimum training cluster size multiplied by the number of clusters: 154 * 11 =  1694.
 
+```{r}
 print("Number of samples in each down-sampled cluster:")
 print(table(training.df$GC))
+```
+Here we verify that we have 154 observations from each cluster in the training set.
 
-print("Number of samples in the testing set:")
-print(nrow(testing.df))
-
+```{r}
 print("Number of samples in each cluster in the testing set:")
 print(table(testing.df$GC))
+```
+We can examine how well each cluster is represented in our testing set. As expected, the smallest group, GC '58,' is less represented than the largest, GC 'b8.' Once again, this will result in larger clusters being better validated than smaller ones. However, for our purposes, the size of each cluster's testing set is sufficient.
 
+```{r}
 #Write the new training and testing dataframes to csv files.
 write.csv(training.df, file=output.train.file, row.names=T)
 write.csv(testing.df, file=output.test.file, row.names=T)

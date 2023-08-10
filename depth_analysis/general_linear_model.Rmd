@@ -34,7 +34,8 @@ test_features <- subset(test, select = wave_features)
 
 
 Least-Absolute Shrinkage and Selection Operator (Lasso) linear regression is a powerful tool for feature selection. Based on a tuning parameter (lambda), we can have the model select the strongest predictors of depth. In this way, rather than specify our favored features, we allow the model to choose them in a way that minimizes the test error; features with minimal impact will have coefficient estimates reduced to zero.
-Compare this to Ridge regression, which similarily minimizes the contributions of weaker predictors but does not minimize any coefficient estimates to zero but rather squeezes them towards zero. We prefer lasso to ridge, as lasso is more likely to produce a more interpretable model with fewer features.
+
+Compare to Ridge regression, which similarily minimizes the contributions of weaker predictors but does not minimize any coefficient estimates to zero but rather squeezes them towards zero. We prefer lasso to ridge, as lasso is more likely to produce a more interpretable model with fewer features.
 
 ```{r}
 #First, we need an x matrix and a y vector to perform the lasso on the data.

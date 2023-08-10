@@ -81,10 +81,11 @@ The RMSE for this model is 3.774, slightly lower than for the previous models. A
 This indicates that while the model choice of ML − Mc has depth increasing as the ML and Mc scales converge, optimizing each feature’s coefficient gives us better predictive performance. However, note that the bulk of the predictive performance can be attributed to the bias term.
 
 ```{r}
-#We can plot the training residuals and observe the correlation between residuals and depth.
+#We can plot the training residuals and observe the relationship between residuals and depth.
  plot((train$ML - train$Mc2), train$Dep)
 ```
-  
+The plot indicates that there may be a linear relationship between residuals and depth.
+
 ```{r}
 #Save the test residuals 
 test$resids <- test$Dep - y_test

@@ -1,4 +1,15 @@
-#plotting the residual results of four models
+#*
+#*This script plots the residual results of the four models.
+#*
+#*We first read in the four residual files and the test set and
+#*add them to a single dataframe. Then, using ggplot2, we construct
+#*four subplots and add them to a single figure that is then annotated
+#*for clarity.
+#*
+
+
+
+
 
 plotting_script_fourpanel_histogram <- function(input.gam.resids = "C:/Users/riley/ds_portfolio/spline_model_test_resids.csv",
                               input.ols.resids = "C:/Users/riley/ds_portfolio/ml_min_mc_resids.csv",

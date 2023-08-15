@@ -158,8 +158,8 @@ def second_order_confidence():
     plt.title("Signal Velocity - Confidence Intervals")
     plt.plot(x1.source_receiver_distance, poly_2nd_order.predict(x1), 'k-', label = "2nd order polynomial fit")
 
-    fittedvalues = dat[:,2]
-    predict_mse = dat[:,3]
+    #fittedvalues = dat[:,2]
+    #predict_mse = dat[:,3]
     predict_mean_ci_low, predict_mean_ci_upp = dat[:,4:6].T
     predict_ci_low, predict_ci_upp = dat[:,6:8].T
 

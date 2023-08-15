@@ -19,6 +19,8 @@ from patsy import dmatrices
 train_file = "~/repos/seismology_data/woodanderson_train.csv"
 data = pd.read_csv(train_file)
 
+y_train, x_train = dmatrices('diff_pick_ot_time ~ source_receiver_distance', data, return_type = 'dataframe')
+
 def conditional_means_scatter():
     """ 
     Plots a scatterplot of the source receiver distance vs the diff pick ot time,
@@ -45,8 +47,6 @@ def conditional_means_scatter():
             label = "conditional means")
 
     #Let's add a line of best fit using OLS regression
-    y_train, x_train = dmatrices('diff_pick_ot_time ~ source_receiver_distance', data, return_type = 'dataframe')
-
     linmod = sm.OLS(endog = y_train, exog = x_train)
     linmod_results = linmod.fit()
     pred = linmod_results.predict(x_train)
@@ -67,10 +67,50 @@ def conditional_means_scatter():
 
     plt.legend()
     plt.show()
+    
+def multi_quantile_fitlines():
+    """ 
+    Plots a scatterplot of the source receiver distance vs the diff pick ot time.
+    The plot includes the best fit lines of the 10th, 25th, 50th, 75th, ad 90th percentiles,
+    calculated using quantile regression.
+    """
+    fig = plt.figure()
+    fig.suptitle('DPOT vs SRD')
+    plt.xlabel('Source Receiver Distance')
+    plt.ylabel('DPOT')
+    plt.scatter(x = data['source_receiver_distance'],
+            y = data['diff_pick_ot_time'])
+
+    coeff = []
+    colors = ['orange', 'lime', 'gold', 'cyan', 'violet']
+    i = 0
+    handles = []
+    quantiles = [0.1, 0.25, 0.5, 0.75, 0.9]
+
+    for q in quantiles:
+        #build a model
+        quant_model = smf.quantreg('diff_pick_ot_time ~ source_receiver_distance', data)
+        #fit the model
+        quant_mod_results = quant_model.fit(q = q)
+        coeff.append(quant_mod_results.params['source_receiver_distance'])
+        #get the estimates from the model
+        quant_preds = quant_mod_results.predict(x_train)
+        #plot the estimated values
+        quantile, = plt.plot(x_train['source_receiver_distance'],
+                         quant_preds, color = colors[i],
+                         linestyle = "dashed",
+                         label = str(int(q*100))+'th percentile Model')
+        i = i + 1
+        handles.append(quantile)
+
+    plt.legend(handles=handles)
+    plt.show()
 
 if __name__ == "__main__":
     #run conditional_means_scatter
     conditional_means_scatter()
+    #run multi_quantile_fitlines
+    multi_quantile_fitlines()
     
     
     

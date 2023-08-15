@@ -270,6 +270,7 @@ def compare_event_type_amplitude_histogram():
 
 
 if __name__ == "__main__":
+    print("SIGNAL VELOCITY", "\n")
     #plot srd vs dpot
     srdvdpot_slope = srd_v_dpot()
     print("slope, intercept of srd vs dpot:", srdvdpot_slope)
@@ -277,17 +278,21 @@ if __name__ == "__main__":
     #plot srd vs dpot with additional baseline velocities
     srd_v_dpot_with_baselines()
     
-    #compare the source velocities of quarry blasts and earthquakes
+    #compare the signal velocities of quarry blasts and earthquakes
     slope_qb, slope_le = source_velocity_event_type_comparison()
-    print("qb data slope, intercept", slope_qb)
-    print("le data slope, intercept", slope_le)
+    print("quarry blast slope, intercept", slope_qb)
+    print("earthquake slope, intercept", slope_le)
+    print("\n")
     
+    print("MAGNITUDES", "\n")
     #visualize magnitude with a gradient-colored histogram with 50 bins
     mag_mean, mag_std, mag_q1, mag_q3 = magnitude_histogram(50)
     print("Mean magnitude:", mag_mean)
     print("Standard deviation of magnitude:", mag_std)
     print("q1, q3 of magnitude:", mag_q1, ",", mag_q3)
+    print("\n")
     
+    print("AMPLITUDES", "\n")
     #visualize amplitude with a gradient-colored histogram
     amp_mean, amp_std, amp_q1, amp_q3 = amplitude_histogram()
     print("Mean amplitude:", amp_mean)

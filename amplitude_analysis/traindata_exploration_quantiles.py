@@ -196,6 +196,11 @@ def second_order_confidence():
 
 
 def polynomial_quantile_regression():
+    """ 
+    Plots a scatterplot of the source receiver distance vs the diff pick ot time.
+    The plot includes second-order polynomial fit line calculated using OLS regression,
+    as well as the 5th, 25th, 50th, 75th, and 95th quantiles. 
+    """
     #Now that we've visualized the confidence intervals around the 2nd-order polynomial fit, 
     #we can extend this quantile regression.
     mod = smf.quantreg(formula='diff_pick_ot_time ~ source_receiver_distance + I(source_receiver_distance ** 2)', data=data)

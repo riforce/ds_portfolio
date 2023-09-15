@@ -1,1 +1,1 @@
-
+DS2500 includes my final project done for a course taken at the University of Utah: Data Wrangling (DS 2500). The final project for this class entailed a python notebook (DS2500_Final) as well as a write-up of the steps, analysis, and interpretaion of results (Final_Writeup.zip). 
